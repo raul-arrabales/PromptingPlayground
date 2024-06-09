@@ -6,6 +6,7 @@ import streamlit as st
 from openai import OpenAI
 import json
 import os
+import hmac
 
 # OpenAI Chat Completion models
 OPENAI_GPT3_5_TURBO = "gpt-3.5-turbo"
@@ -18,6 +19,36 @@ OPENAI_GPT4o = "gpt-4o"
 OpenAI_ChatModels = [
     OPENAI_GPT3_5_TURBO,OPENAI_GPT3_5_TURBO_0125,OPENAI_GPT3_5_TURBO_16K,OPENAI_GPT4_TURBO_128K,
     OPENAI_GPT4_TURBO_PREVIEW,OPENAI_GPT4o_MAY24,OPENAI_GPT4o]
+
+
+# MARK: Page PW
+def check_password():
+    """Returns `True` if the user had the correct password."""
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if hmac.compare_digest(st.session_state["password"], st.secrets["password"]):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store the password.
+        else:
+            st.session_state["password_correct"] = False
+
+    # Return True if the password is validated.
+    if st.session_state.get("password_correct", False):
+        return True
+
+    # Show input for password.
+    st.text_input(
+        "Password", type="password", on_change=password_entered, key="password"
+    )
+    if "password_correct" in st.session_state:
+        st.error("😕 Password incorrect")
+    return False
+
+
+# Remove pw checking after secrets have been removed. 
+if not check_password():
+   st.stop()  # Do not continue if check_password is not True.
 
 
 
